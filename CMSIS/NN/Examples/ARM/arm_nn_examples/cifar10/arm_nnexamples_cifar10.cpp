@@ -125,7 +125,11 @@ q7_t      col_buffer[2 * 5 * 5 * 32 * 2];
 
 q7_t      scratch_buffer[32 * 32 * 10 * 4];
 
-int main()
+#ifdef USE_SHELL
+int cifar10_main(int argc, char* argv[])
+#else
+int main(int argc, char* argv[])
+#endif
 {
   #ifdef RTE_Compiler_EventRecorder
   EventRecorderInitialize (EventRecordAll, 1);  // initialize and start Event Recorder
@@ -187,10 +191,26 @@ int main()
 
   arm_softmax_q7(output_data, 10, output_data);
 
+  static const char* CIFAR10_LABELS_LIST[] = { "airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck" };
   for (int i = 0; i < 10; i++)
   {
-      printf("%d: %d\n", i, output_data[i]);
+      /* Q to Float: Q7*2^-7 */
+      printf("%s: %d.%d%%\n", CIFAR10_LABELS_LIST[i], output_data[i]*100/128, (output_data[i]*1000/128)%10);
   }
 
   return 0;
 }
+
+#ifdef USE_SHELL
+#include "shell.h"
+
+static SHELL_CONST ShellCmdT cifar10Cmd  = {
+		cifar10_main,
+		0,1,
+		"cifar10",
+		"cifar10 img",
+		"sample cifar10 object detection\n",
+		{NULL,NULL}
+};
+SHELL_CMD_EXPORT(cifar10Cmd)
+#endif
