@@ -137,7 +137,17 @@ int main(int argc, char* argv[])
 
   printf("start execution\n");
   /* start the execution */
-
+#ifdef USE_VFS
+  if(argc > 1) {
+    FILE* fp = fopen(argv[1],"rb");
+    if(NULL != fp) {
+      fread(image_data, 1, sizeof(image_data), fp);
+      fclose(fp);
+    } else {
+      printf("file %s not exists.\n", argv[1]);
+    }
+  }
+#endif
   q7_t     *img_buffer1 = scratch_buffer;
   q7_t     *img_buffer2 = img_buffer1 + 32 * 32 * 32;
 
