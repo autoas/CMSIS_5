@@ -1,0 +1,22 @@
+import os,sys
+
+ROOT = os.path.abspath('../../../../../..')
+ASPATH= os.path.abspath('%s/../../..'%(ROOT))
+studio=os.path.abspath('%s/com/as.tool/config.infrastructure.system/'%(ASPATH))
+sys.path.append(studio)
+from building import *
+
+objs = []
+
+os.environ['BOARD'] = 'posix'
+env = PrepareEnv('cifar10')
+
+objs += Glob('%s/CMSIS/NN/Source/*/*.c'%(ROOT))
+objs += Glob('*.cpp')
+
+env.Append(CPPPATH=['%s/CMSIS/NN/Include'%(ROOT),
+                      '%s/CMSIS/DSP/Include'%(ROOT),
+                      '%s/CMSIS/Core/Include'%(ROOT),])
+env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__','USE_VFS'])
+
+env.Program('cifar10',objs)
