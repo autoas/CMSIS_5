@@ -12,7 +12,17 @@ os.environ['BOARD'] = 'posix'
 env = PrepareEnv('cifar10')
 
 objs += Glob('%s/CMSIS/NN/Source/*/*.c'%(ROOT))
-objs += Glob('*.cpp')
+
+AddOption('--m7',
+        dest = 'm7',
+        action = 'store_true',
+        default = False,
+        help = 'build with ML-examples code/m7')
+
+if(os.path.exists('ML-examples') and GetOption('m7')):
+    objs += Glob('ML-examples/cmsisnn-cifar10/code/m7/*.cpp')
+else:
+    objs += Glob('*.cpp')
 
 env.Append(CPPPATH=['%s/CMSIS/NN/Include'%(ROOT),
                       '%s/CMSIS/DSP/Include'%(ROOT),
