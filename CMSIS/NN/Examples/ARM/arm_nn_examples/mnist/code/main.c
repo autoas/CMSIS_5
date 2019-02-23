@@ -95,24 +95,24 @@ int main(int argc, char* argv[])
 						  POOL2_PADDING, POOL2_STRIDE, POOL2_OUT_DIM, NULL, pool2_out);
 	save("tmp/pool2_out.raw", pool2_out, sizeof(pool2_out));
 
-	W_fc1 = load("tmp/W_fc1_9.raw");
+	W_fc1 = load("tmp/W_fc1_8.raw");
 	b_fc1 = load("tmp/b_fc1_10.raw");
 	#define IP1_DIM 3136
 	#define IP1_OUT 1024
-	#define IP1_BIAS_LSHIFT 6
-	#define IP1_OUT_RSHIFT  9
+	#define IP1_BIAS_LSHIFT 5
+	#define IP1_OUT_RSHIFT  8
 	arm_fully_connected_q7_opt(pool2_out, W_fc1, IP1_DIM, IP1_OUT, IP1_BIAS_LSHIFT, IP1_OUT_RSHIFT, b_fc1,
 						  fc1_out, NULL);
 	save("tmp/fc1_out.raw", fc1_out, sizeof(fc1_out));
 	arm_relu_q7(fc1_out, IP1_OUT);
 	save("tmp/relu3_out.raw", fc1_out, sizeof(fc1_out));
 
-	W_fc2 = load("tmp/W_fc2_9.raw");
+	W_fc2 = load("tmp/W_fc2_8.raw");
 	b_fc2 = load("tmp/b_fc2_10.raw");
 	#define IP2_DIM 1024
 	#define IP2_OUT 10
-	#define IP2_BIAS_LSHIFT 6
-	#define IP2_OUT_RSHIFT  9
+	#define IP2_BIAS_LSHIFT 5
+	#define IP2_OUT_RSHIFT  8
 	arm_fully_connected_q7_opt(fc1_out, W_fc2, IP2_DIM, IP2_OUT, IP2_BIAS_LSHIFT, IP2_OUT_RSHIFT, b_fc2,
 						  fc2_out, NULL);
 	save("tmp/fc2_out.raw", fc2_out, sizeof(fc2_out));
