@@ -1,0 +1,24 @@
+import os,sys
+
+ROOT = os.path.abspath('../../../../../..')
+ASPATH= os.path.abspath('%s/../../..'%(ROOT))
+studio=os.path.abspath('%s/com/as.tool/config.infrastructure.system/'%(ASPATH))
+sys.path.append(studio)
+from building import *
+
+objs = []
+
+os.environ['BOARD'] = 'posix'
+env = PrepareEnv('mnist')
+
+objs += Glob('%s/CMSIS/NN/Source/*/*.c'%(ROOT))
+
+objs += Glob('code/*.c')
+
+env.Append(CPPPATH=['%s/CMSIS/NN/Include'%(ROOT),
+                      '%s/CMSIS/DSP/Include'%(ROOT),
+                      '%s/CMSIS/Core/Include'%(ROOT),])
+env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__','USE_VFS'])
+env.Append(CCFLAGS=['-g','-O0'])
+
+env.Program('mnist',objs)
