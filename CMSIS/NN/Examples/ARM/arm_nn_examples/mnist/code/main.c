@@ -36,7 +36,6 @@ q7_t fc2_out[10];
 q7_t y_out[10];
 int main(int argc, char* argv[])
 {
-	int r;
 	q7_t *input,*W_conv1,*b_conv1,*W_conv2,*b_conv2,*W_fc1,*b_fc1,*W_fc2,*b_fc2;
 	printf("loading input&weights...\n");
 	input = load("tmp/input_7.raw");
@@ -50,8 +49,8 @@ int main(int argc, char* argv[])
 	#define CONV1_PADDING ((CONV1_KER_DIM-1)/2)
 	#define CONV1_STRIDE  1
 	#define CONV1_OUT_DIM 28
-	#define CONV1_BIAS_LSHIFT 6
-	#define CONV1_OUT_RSHIFT  9
+	#define CONV1_BIAS_LSHIFT 6  // 7+9-10
+	#define CONV1_OUT_RSHIFT  10 // Q1.6
 	arm_convolve_HWC_q7_basic(input, CONV1_IM_DIM, CONV1_IM_CH, W_conv1, CONV1_OUT_CH, CONV1_KER_DIM, CONV1_PADDING,
 						  CONV1_STRIDE, b_conv1, CONV1_BIAS_LSHIFT, CONV1_OUT_RSHIFT, conv1_out, CONV1_OUT_DIM,
 						  NULL, NULL);
@@ -77,8 +76,8 @@ int main(int argc, char* argv[])
 	#define CONV2_STRIDE 1
 	#define CONV2_KER_DIM 5
 	#define CONV2_PADDING ((CONV2_KER_DIM-1)/2)
-	#define CONV2_BIAS_LSHIFT 6
-	#define CONV2_OUT_RSHIFT  9
+	#define CONV2_BIAS_LSHIFT 5  // 6+9-10
+	#define CONV2_OUT_RSHIFT  10 // Q2.5
 	arm_convolve_HWC_q7_fast(pool1_out, CONV2_IM_DIM, CONV2_IM_CH, W_conv2, CONV2_OUT_CH, CONV2_KER_DIM,
 						  CONV2_PADDING, CONV2_STRIDE, b_conv2, CONV2_BIAS_LSHIFT, CONV2_OUT_RSHIFT, conv2_out,
 						  CONV2_OUT_DIM, NULL, NULL);
@@ -95,24 +94,24 @@ int main(int argc, char* argv[])
 						  POOL2_PADDING, POOL2_STRIDE, POOL2_OUT_DIM, NULL, pool2_out);
 	save("tmp/pool2_out.raw", pool2_out, sizeof(pool2_out));
 
-	W_fc1 = load("tmp/W_fc1_8.raw");
+	W_fc1 = load("tmp/W_fc1_9_opt.raw");
 	b_fc1 = load("tmp/b_fc1_10.raw");
 	#define IP1_DIM 3136
 	#define IP1_OUT 1024
-	#define IP1_BIAS_LSHIFT 5
-	#define IP1_OUT_RSHIFT  8
+	#define IP1_BIAS_LSHIFT 4  // 5+9-10
+	#define IP1_OUT_RSHIFT  10 // Q3.4
 	arm_fully_connected_q7_opt(pool2_out, W_fc1, IP1_DIM, IP1_OUT, IP1_BIAS_LSHIFT, IP1_OUT_RSHIFT, b_fc1,
 						  fc1_out, NULL);
 	save("tmp/fc1_out.raw", fc1_out, sizeof(fc1_out));
 	arm_relu_q7(fc1_out, IP1_OUT);
 	save("tmp/relu3_out.raw", fc1_out, sizeof(fc1_out));
 
-	W_fc2 = load("tmp/W_fc2_8.raw");
+	W_fc2 = load("tmp/W_fc2_9_opt.raw");
 	b_fc2 = load("tmp/b_fc2_10.raw");
 	#define IP2_DIM 1024
 	#define IP2_OUT 10
-	#define IP2_BIAS_LSHIFT 5
-	#define IP2_OUT_RSHIFT  8
+	#define IP2_BIAS_LSHIFT 3  // 4+9-10
+	#define IP2_OUT_RSHIFT  9  // Q3.4
 	arm_fully_connected_q7_opt(fc1_out, W_fc2, IP2_DIM, IP2_OUT, IP2_BIAS_LSHIFT, IP2_OUT_RSHIFT, b_fc2,
 						  fc2_out, NULL);
 	save("tmp/fc2_out.raw", fc2_out, sizeof(fc2_out));

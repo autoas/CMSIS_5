@@ -10,10 +10,10 @@ def convert_to_x4_q7_weights(weights):
     new_weights = np.copy(weights)
     new_weights = np.reshape(new_weights, (r*h*w*c))
     counter = 0
-    for i in range(int(num_of_rows)/4):
+    for i in range(int(num_of_rows/4)):
       # we only need to do the re-ordering for every 4 rows
       row_base = 4*i
-      for j in range (int(num_of_cols)/4):
+      for j in range (int(num_of_cols/4)):
         # for each 4 entries
         column_base = 4*j
         new_weights[counter]   =  weights[row_base  ][column_base  ]
@@ -51,10 +51,10 @@ def convert_to_x4_q15_weights(weights):
     new_weights = np.copy(weights)
     new_weights = np.reshape(new_weights, (r*h*w*c))
     counter = 0
-    for i in range(int(num_of_rows)/4):
+    for i in range(int(num_of_rows/4)):
       # we only need to do the re-ordering for every 4 rows
       row_base = 4*i
-      for j in range (int(num_of_cols)/2):
+      for j in range (int(num_of_cols/2)):
         # for each 2 entries
         column_base = 2*j
         new_weights[counter]   =  weights[row_base  ][column_base  ]
@@ -84,10 +84,10 @@ def convert_q7_q15_weights(weights):
     new_weights = np.copy(weights)
     new_weights = np.reshape(new_weights, (r*h*w*c))
     counter = 0
-    for i in range(int(num_of_rows)/4):
+    for i in range(int(num_of_rows/4)):
       # we only need to do the re-ordering for every 4 rows
       row_base = 4*i
-      for j in range (int(num_of_cols)/2):
+      for j in range (int(num_of_cols/2)):
         # for each 2 entries
         column_base = 2*j
         new_weights[counter]   =  weights[row_base  ][column_base  ]
@@ -109,38 +109,39 @@ def convert_q7_q15_weights(weights):
         counter = counter + 4
     return new_weights
 
-# input dimensions
-vec_dim = 127
-row_dim = 127
-
-weight = np.zeros((row_dim,vec_dim), dtype=int)
-
-# generate random inputs
-for i in range(row_dim):
-  for j in range(vec_dim):
-    weight[i][j] = np.random.randint(256)-128
-
-weight = np.reshape(weight, (row_dim, vec_dim, 1, 1))
-
-outfile = open("../Ref_Implementations/fully_connected_testing_weights.h", "w")
-outfile.write("#define IP2_WEIGHT {")
-weight.tofile(outfile,sep=",",format="%d")
-outfile.write("}\n\n")
-
-new_weight = convert_to_x4_q7_weights(weight)
-outfile.write("#define IP4_WEIGHT {")
-new_weight.tofile(outfile,sep=",",format="%d")
-outfile.write("}\n\n")
-
-new_weight = convert_q7_q15_weights(weight)
-outfile.write("#define IP4_q7_q15_WEIGHT {")
-new_weight.tofile(outfile,sep=",",format="%d")
-outfile.write("}\n\n")
-
-new_weight = convert_to_x4_q15_weights(weight)
-outfile.write("#define IP4_WEIGHT_Q15 {")
-new_weight.tofile(outfile,sep=",",format="%d")
-outfile.write("}\n\n")
-
-
-outfile.close()
+if __name__ == "__main__":
+    # input dimensions
+    vec_dim = 127
+    row_dim = 127
+    
+    weight = np.zeros((row_dim,vec_dim), dtype=int)
+    
+    # generate random inputs
+    for i in range(row_dim):
+      for j in range(vec_dim):
+        weight[i][j] = np.random.randint(256)-128
+    
+    weight = np.reshape(weight, (row_dim, vec_dim, 1, 1))
+    
+    outfile = open("../Ref_Implementations/fully_connected_testing_weights.h", "w")
+    outfile.write("#define IP2_WEIGHT {")
+    weight.tofile(outfile,sep=",",format="%d")
+    outfile.write("}\n\n")
+    
+    new_weight = convert_to_x4_q7_weights(weight)
+    outfile.write("#define IP4_WEIGHT {")
+    new_weight.tofile(outfile,sep=",",format="%d")
+    outfile.write("}\n\n")
+    
+    new_weight = convert_q7_q15_weights(weight)
+    outfile.write("#define IP4_q7_q15_WEIGHT {")
+    new_weight.tofile(outfile,sep=",",format="%d")
+    outfile.write("}\n\n")
+    
+    new_weight = convert_to_x4_q15_weights(weight)
+    outfile.write("#define IP4_WEIGHT_Q15 {")
+    new_weight.tofile(outfile,sep=",",format="%d")
+    outfile.write("}\n\n")
+    
+    
+    outfile.close()
