@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
+#include "weights.h"
 
 q7_t* load(const char* file)
 {
@@ -38,9 +39,9 @@ int main(int argc, char* argv[])
 {
 	q7_t *input,*W_conv1,*b_conv1,*W_conv2,*b_conv2,*W_fc1,*b_fc1,*W_fc2,*b_fc2;
 	printf("loading input&weights...\n");
-	input = load("tmp/input_7.raw");
-	W_conv1 = load("tmp/W_conv1_9.raw");
-	b_conv1 = load("tmp/b_conv1_10.raw");
+	input = load("tmp/input.raw");
+	W_conv1 = load("tmp/W_conv1.raw");
+	b_conv1 = load("tmp/b_conv1.raw");
 
 	#define CONV1_IM_DIM 28
 	#define CONV1_IM_CH  1
@@ -49,8 +50,8 @@ int main(int argc, char* argv[])
 	#define CONV1_PADDING ((CONV1_KER_DIM-1)/2)
 	#define CONV1_STRIDE  1
 	#define CONV1_OUT_DIM 28
-	#define CONV1_BIAS_LSHIFT 6  // 7+9-10
-	#define CONV1_OUT_RSHIFT  10 // Q1.6
+	#define CONV1_BIAS_LSHIFT (INPUT_Q+W_CONV1_Q-B_CONV1_Q)
+	#define CONV1_OUT_RSHIFT  (INPUT_Q+W_CONV1_Q-CONV1_OUT_Q)
 	arm_convolve_HWC_q7_basic(input, CONV1_IM_DIM, CONV1_IM_CH, W_conv1, CONV1_OUT_CH, CONV1_KER_DIM, CONV1_PADDING,
 						  CONV1_STRIDE, b_conv1, CONV1_BIAS_LSHIFT, CONV1_OUT_RSHIFT, conv1_out, CONV1_OUT_DIM,
 						  NULL, NULL);
@@ -67,8 +68,8 @@ int main(int argc, char* argv[])
 						  POOL1_PADDING, POOL1_STRIDE, POOL1_OUT_DIM, NULL, pool1_out);
 	save("tmp/pool1_out.raw", pool1_out, sizeof(pool1_out));
 
-	W_conv2 = load("tmp/W_conv2_9.raw");
-	b_conv2 = load("tmp/b_conv2_10.raw");
+	W_conv2 = load("tmp/W_conv2.raw");
+	b_conv2 = load("tmp/b_conv2.raw");
 	#define CONV2_IM_DIM 14
 	#define CONV2_IM_CH  32
 	#define CONV2_OUT_DIM 14
@@ -76,8 +77,8 @@ int main(int argc, char* argv[])
 	#define CONV2_STRIDE 1
 	#define CONV2_KER_DIM 5
 	#define CONV2_PADDING ((CONV2_KER_DIM-1)/2)
-	#define CONV2_BIAS_LSHIFT 5  // 6+9-10
-	#define CONV2_OUT_RSHIFT  10 // Q2.5
+	#define CONV2_BIAS_LSHIFT (CONV1_OUT_Q+W_CONV2_Q-B_CONV2_Q)
+	#define CONV2_OUT_RSHIFT  (CONV1_OUT_Q+W_CONV2_Q-CONV2_OUT_Q)
 	arm_convolve_HWC_q7_fast(pool1_out, CONV2_IM_DIM, CONV2_IM_CH, W_conv2, CONV2_OUT_CH, CONV2_KER_DIM,
 						  CONV2_PADDING, CONV2_STRIDE, b_conv2, CONV2_BIAS_LSHIFT, CONV2_OUT_RSHIFT, conv2_out,
 						  CONV2_OUT_DIM, NULL, NULL);
@@ -94,24 +95,24 @@ int main(int argc, char* argv[])
 						  POOL2_PADDING, POOL2_STRIDE, POOL2_OUT_DIM, NULL, pool2_out);
 	save("tmp/pool2_out.raw", pool2_out, sizeof(pool2_out));
 
-	W_fc1 = load("tmp/W_fc1_9_opt.raw");
-	b_fc1 = load("tmp/b_fc1_10.raw");
+	W_fc1 = load("tmp/W_fc1_opt.raw");
+	b_fc1 = load("tmp/b_fc1.raw");
 	#define IP1_DIM 3136
 	#define IP1_OUT 1024
-	#define IP1_BIAS_LSHIFT 4  // 5+9-10
-	#define IP1_OUT_RSHIFT  10 // Q3.4
+	#define IP1_BIAS_LSHIFT (CONV2_OUT_Q+W_FC1_Q-B_FC1_Q)
+	#define IP1_OUT_RSHIFT  (CONV2_OUT_Q+W_FC1_Q-FC1_OUT_Q)
 	arm_fully_connected_q7_opt(pool2_out, W_fc1, IP1_DIM, IP1_OUT, IP1_BIAS_LSHIFT, IP1_OUT_RSHIFT, b_fc1,
 						  fc1_out, NULL);
 	save("tmp/fc1_out.raw", fc1_out, sizeof(fc1_out));
 	arm_relu_q7(fc1_out, IP1_OUT);
 	save("tmp/relu3_out.raw", fc1_out, sizeof(fc1_out));
 
-	W_fc2 = load("tmp/W_fc2_9_opt.raw");
-	b_fc2 = load("tmp/b_fc2_10.raw");
+	W_fc2 = load("tmp/W_fc2_opt.raw");
+	b_fc2 = load("tmp/b_fc2.raw");
 	#define IP2_DIM 1024
 	#define IP2_OUT 10
-	#define IP2_BIAS_LSHIFT 3  // 4+9-10
-	#define IP2_OUT_RSHIFT  9  // Q3.4
+	#define IP2_BIAS_LSHIFT (FC1_OUT_Q+W_FC2_Q-B_FC2_Q)
+	#define IP2_OUT_RSHIFT  (FC1_OUT_Q+W_FC2_Q-FC2_OUT_Q)
 	arm_fully_connected_q7_opt(fc1_out, W_fc2, IP2_DIM, IP2_OUT, IP2_BIAS_LSHIFT, IP2_OUT_RSHIFT, b_fc2,
 						  fc2_out, NULL);
 	save("tmp/fc2_out.raw", fc2_out, sizeof(fc2_out));

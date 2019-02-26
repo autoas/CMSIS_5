@@ -1,3 +1,15 @@
 Local_Release/
 CMSIS/Documentation/
 CMSIS/RTOS2/RTX/Library/ARM/MDK/RTX_CM.uvguix.*
+*.o
+tmp
+*.gz
+*.bin
+*.png
+*.jpg
+
+mnist
+cifar10
+__pycache__
+
+*.pb
