@@ -6,8 +6,6 @@
 #include "arm_nnfunctions.h"
 #include "weights.h"
 
-#define USE_NNOM
-
 #ifdef USE_NNOM
 #include "nnom.h"
 #endif
@@ -146,7 +144,7 @@ int main(int argc, char* argv[])
 	static nnom_weight_t ip1_w = {0, IP1_OUT_RSHIFT};   ip1_w.p_value = W_fc1;
 	static nnom_bias_t   ip1_b = {0, IP1_BIAS_LSHIFT};  ip1_b.p_value = b_fc1;
 	static nnom_weight_t ip2_w = {0, IP2_OUT_RSHIFT};   ip2_w.p_value = W_fc2;
-	static  nnom_bias_t   ip2_b = {0, IP2_BIAS_LSHIFT}; ip2_w.p_value = b_fc2;
+	static  nnom_bias_t   ip2_b = {0, IP2_BIAS_LSHIFT}; ip2_b.p_value = b_fc2;
 	new_model(&model);
 	model.add(&model, Input(shape(CONV1_IM_DIM, CONV1_IM_DIM, CONV1_IM_CH), qformat(0, 7), input));
 	model.add(&model, Conv2D(CONV1_OUT_CH, kernel(CONV1_KER_DIM, CONV1_KER_DIM), stride(CONV1_STRIDE, CONV1_STRIDE), PADDING_SAME, &c1_w, &c1_b));
@@ -163,8 +161,8 @@ int main(int argc, char* argv[])
 	sequencial_compile(&model);
 
 	model_run(&model);
-
-	save("tmp/y_out.raw", y_out, sizeof(y_out));
+    
+    save("tmp/y_out.raw", y_out, sizeof(y_out));
 
 	printf("inference is done!\n");
 #endif

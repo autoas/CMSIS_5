@@ -7,18 +7,26 @@ sys.path.append(studio)
 from building import *
 
 objs = []
-
-os.environ['BOARD'] = 'posix'
-env = PrepareEnv('mnist')
+try:
+    os.environ['BOARD'] = 'posix'
+    env = PrepareEnv('mnist')
+except:
+    env = Environment()
 
 objs += Glob('%s/CMSIS/NN/Source/*/*.c'%(ROOT))
+objs += Glob('%s/CMSIS/DSP/Source/BasicMathFunctions/*.c'%(ROOT))
 
 objs += Glob('code/*.c')
 
 env.Append(CPPPATH=['%s/CMSIS/NN/Include'%(ROOT),
                       '%s/CMSIS/DSP/Include'%(ROOT),
                       '%s/CMSIS/Core/Include'%(ROOT),])
-env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__','USE_VFS'])
+env.Append(CPPDEFINES=['__ARM_ARCH_8M_BASE__'])
 env.Append(CCFLAGS=['-g','-O0'])
+
+if(os.path.exists('nnom')):
+    objs +=Glob('nnom/src/*.c')
+    env.Append(CPPPATH=['nnom/inc','nnom/port'])
+    env.Append(CPPDEFINES=['USE_NNOM','USE_NNOM_OUTPUT_SAVE'])
 
 env.Program('mnist',objs)
