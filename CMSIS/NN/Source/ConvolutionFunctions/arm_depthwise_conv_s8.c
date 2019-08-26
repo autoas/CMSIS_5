@@ -47,6 +47,7 @@
    *  Optimization using DSP extension is not available for the generic case where channel multiplier is > 1.
    *
    */
+#if 0
 arm_status arm_depthwise_conv_s8(const q7_t *input,
                                  const uint16_t input_x,
                                  const uint16_t input_y,
@@ -60,7 +61,7 @@ arm_status arm_depthwise_conv_s8(const q7_t *input,
                                  const uint16_t pad_y,
                                  const uint16_t stride_x,
                                  const uint16_t stride_y,
-                                 const q7_t *bias,
+                                 const q31_t *bias,
                                  q7_t *output,
                                  const int32_t *output_shift,
                                  const int32_t *output_mult,
@@ -126,7 +127,70 @@ arm_status arm_depthwise_conv_s8(const q7_t *input,
     /* Return to application */
     return ARM_MATH_SUCCESS;
 }
+#else
+arm_status arm_depthwise_conv_s8(const q7_t *input,
+                                 const uint16_t input_x,
+                                 const uint16_t input_y,
+                                 const uint16_t input_ch,
+                                 const q7_t *kernel,
+                                 const uint16_t output_ch,
+                                 const uint16_t ch_mult,
+                                 const uint16_t kernel_x,
+                                 const uint16_t kernel_y,
+                                 const uint16_t pad_x,
+                                 const uint16_t pad_y,
+                                 const uint16_t stride_x,
+                                 const uint16_t stride_y,
+                                 const q31_t *bias,
+                                 q7_t *output,
+                                 const int32_t *output_shift,
+                                 const int32_t *output_mult,
+                                 const uint16_t output_x,
+                                 const uint16_t output_y,
+                                 const int32_t output_offset,
+                                 const int32_t input_offset,
+                                 const int32_t output_activation_min,
+                                 const int32_t output_activation_max,
+                                 const uint16_t dilation_x,
+                                 const uint16_t dilation_y,
+                                 q15_t *buffer_a)
+{
+	int  conv_out;
+	int  i_out_y, i_out_x, i_ch_out;
+	int  i_ker_y, i_ker_x;
+	int in_row, in_col;
 
+	for (i_out_y = 0; i_out_y < output_y; i_out_y++)
+	{
+		for (i_out_x = 0; i_out_x < output_x; i_out_x++)
+		{
+			for (i_ch_out = 0; i_ch_out < output_ch; i_ch_out++)
+			{
+				conv_out = bias[i_ch_out];
+				for (i_ker_y = 0; i_ker_y < kernel_y; i_ker_y++)
+				{
+					for (i_ker_x = 0; i_ker_x < kernel_x; i_ker_x++)
+					{
+						in_row = stride_y * i_out_y + i_ker_y - pad_y;
+						in_col = stride_x * i_out_x + i_ker_x - pad_x;
+						if ((in_row >= 0) && (in_col >= 0) && (in_row < input_y) && (in_col < input_x))
+						{
+							conv_out += (input[(in_row * input_x + in_col) * input_ch + i_ch_out]+input_offset) *
+									kernel[(i_ker_y * kernel_x + i_ker_x) * output_ch + i_ch_out];
+						}
+					}
+				}
+				conv_out = arm_nn_requantize(conv_out, output_mult[i_ch_out], output_shift[i_ch_out]);
+				conv_out += output_offset;
+				conv_out = MAX(conv_out, output_activation_min);
+				conv_out = MIN(conv_out, output_activation_max);
+				output[(i_out_y * output_x + i_out_x) * output_ch + i_ch_out] = conv_out;
+			}
+		}
+	}
+	return ARM_MATH_SUCCESS;
+}
+#endif
 /**
  * @} end of NNConv group
  */

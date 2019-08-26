@@ -303,7 +303,7 @@ __STATIC_FORCEINLINE q31_t arm_nn_sat_doubling_high_mult(const q31_t m1, const q
 {
     q31_t result = 0;
     // Rounding offset to add for a right shift of 31
-    q63_t mult = 1 << 30;
+    q63_t mult = 1 << 15;
 
     if ((m1 < 0) ^ (m2 < 0))
     {
@@ -314,7 +314,7 @@ __STATIC_FORCEINLINE q31_t arm_nn_sat_doubling_high_mult(const q31_t m1, const q
 
     // Utilize all of the upper 32 bits. This is the doubling step
     // as well.
-    result = mult / (1UL << 31);
+    result = mult / (1UL << 16);
 
     if ((m1 == m2) && (m1 == Q31_MIN))
     {
